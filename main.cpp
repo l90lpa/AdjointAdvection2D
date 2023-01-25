@@ -27,6 +27,34 @@ void FTCSStep(Array2D<double>& unew, const Array2D<double>& u) {
     }
 }
 
+void LaxWendroffStep(Array2D<double>& unew, const Array2D<double>& u) {
+    assert(u.rows() == unew.rows() && u.columns() == unew.columns() && u.rows() == Nx && u.columns() == Ny);
+
+    const double dtdx{ dt / dx };
+    const double dtdy{ dt / dy };
+    const double c2{ std::pow(c, 2) };
+    const double dtdx2{ std::pow(dtdx, 2) };
+    const double dtdy2{ std::pow(dtdy, 2) };
+    const double dt2dxdy{ std::pow(dt, 2) / (dx * dy) };
+
+    for (int i = 0; i < Nx; i++) {
+        for (int j = 0; j < Ny; j++) {
+            int i_prev = (i + Nx - 1) % Nx;
+            int i_next = (i + 1) % Nx;
+            int j_prev = (j + Ny - 1) % Ny;
+            int j_next = (j + 1) % Ny;
+
+            unew(i, j) = u(i, j) 
+                - 0.5 * c * dtdx * (u(i_next, j) - u(i_prev, j))
+                - 0.5 * c * dtdy * (u(i, j_next) - u(i, j_prev))
+                + 0.5 * c2 * dtdx2 * (u(i_prev, j) - 2 * u(i, j) + u(i_next, j))
+                + 0.5 * c2 * dtdy2 * (u(i, j_prev) - 2 * u(i, j) + u(i, j_next))
+                + (1/8) * 2 * c2 * dt2dxdy * ((u(i_next, j_next) - u(i_prev, j_next)) - (u(i_next, j_prev) - u(i_prev, j_prev)));
+        }
+    }
+}
+
+
 int main() {
 
     // Initialize u
@@ -42,7 +70,7 @@ int main() {
     // Solver
     Array2D<double> unew((size_t)Nx,(size_t)Ny);
     for (int t = 0; t < tmax; t++) {
-        FTCSStep(unew, u);
+        LaxWendroffStep(unew, u);
         u = unew;
     }
 
