@@ -139,6 +139,14 @@ public:
 	{
 	}
 
+	Array2D(const Array2D& a) :
+		rows_(a.rows_),
+		columns_(a.columns_),
+		data_(new T[rows_ * columns_])
+	{
+		memcpy(data_, a.data_, sizeof(T) * rows_ * columns_);
+	}
+
 	Array2D(Array2D &&a) :
 		rows_(a.rows_),
 		columns_(a.columns_),
@@ -150,6 +158,23 @@ public:
 	~Array2D()
 	{
 		delete[] data_;
+	}
+
+	friend void swap(Array2D& first, Array2D& second)
+	{
+		// enable ADL
+		using std::swap;
+
+		swap(first.rows_, second.rows_);
+		swap(first.columns_, second.columns_);
+		swap(first.data_, second.data_);
+	}
+
+	Array2D& operator=(Array2D other)
+	{
+		swap(*this, other);
+
+		return *this;
 	}
 
 	size_t rows() const
